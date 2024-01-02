@@ -1,5 +1,7 @@
 * {
   box-sizing: border-box;
+  padding: 0;
+  margin: 0;
 }
 
 body {
@@ -8,9 +10,49 @@ body {
 }
 
 main {
-  width: 80%;
-  margin: auto;
-  max-width: 1200px;
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  max-height: 100vh;
+  max-width: 100vw;
+  height: 100vh;
+  width: 100vw;
+  justify-content: center;
+}
+
+#header {
+  flex: 0;
+  padding: 5px;
+  background-color: white;
+}
+
+#video-content {
+  background-color: white;
+  flex: 3;
+  justify-content: center;
+  display: flex;
+  flex-direction: row;
+  max-height: 80%;
+  width: 100vw;
+  max-width: 100vw;
+}
+
+#video-content canvas {
+  background-color: red;
+  aspect-ratio: 16/9;
+  max-width: 100vw;
+  height: auto;
+}
+
+#canvas-overlay {
+  position: absolute;
+  z-index: 50;
+}
+
+#toolbar {
+  flex: 0;
+  padding: 10px;
+  background-color: white;
 }
 
 #previewWrapper {

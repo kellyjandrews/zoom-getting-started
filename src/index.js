@@ -30,7 +30,7 @@ app.use(
   })
 );
 console.log(process.cwd());
-app.use('/zoom', express.static(`${process.cwd()}/node_modules/@zoom/videosdk-ui-toolkit`));
+app.use('/zoom', express.static(`${process.cwd()}/node_modules/@zoom/`));
 
 app.get('/', (_, res) => {
   res.send(`${process.cwd()}/src/public/index.html`);

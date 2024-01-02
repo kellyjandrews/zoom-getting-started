@@ -1,57 +1,105 @@
-import uitoolkit from '/zoom/index.js';
+import ZoomVideo from '/zoom/videosdk/dist/index.esm.js';
 
-const joinContainer = document.getElementById('joinContainer');
-const sessionContainer = document.getElementById('sessionContainer');
-const previewContainer = document.getElementById('previewContainer');
-const endContainer = document.getElementById('finalContainer');
-const previewWrapper = document.getElementById('previewWrapper');
+const client = ZoomVideo.createClient();
+let canvas = document.querySelector('#videos');
+let mediaStream;
+let displayWidth;
+let displayHeight;
+let videoWidth;
+let videoHeight;
 
-const config = {
-  videoSDKJWT: '',
-  sessionName: 'ZoomVideoSDKDemo',
-  sessionPasscode: 'abc123',
-  features: ['video', 'audio', 'settings', 'users', 'chat', 'share']
-};
+async function onResize() {
+  await renderVideo();
+}
 
-window.joinSession = joinSession;
-window.joinPreview = joinPreview;
+function resizeCanvasToDisplaySize() {
+  let width = canvas.clientWidth;
+  let height = canvas.clientHeight;
+  displayHeight = Math.floor(height);
+  displayWidth = Math.floor(width);
 
-async function getVideoSDKJWT() {
-  config.userName = document.getElementById('yourName').value;
+  let needResize = canvas.width != displayWidth || canvas.height != displayHeight;
 
-  if (config.userName) {
-    let response = await fetch('/api/generate', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        topic: config.sessionName,
-        roleType: parseInt(document.getElementById('role').value, 2)
-      })
-    });
-
-    let data = await response.json();
-    config.videoSDKJWT = data.signature;
-    return;
+  if (needResize) {
+    try {
+      mediaStream.updateVideoCanvasDimension(canvas, displayWidth, displayHeight);
+    } catch (error) {
+      canvas.height = displayHeight;
+      canvas.width = (displayHeight * 16) / 9;
+    }
   }
 }
 
-function joinPreview() {
-  joinContainer.style.display = 'none';
-  uitoolkit.openPreview(previewContainer);
-  previewWrapper.style.display = 'block';
+function throttle(f, delay) {
+  let timer = 0;
+  return function (...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => f.apply(this, args), delay);
+  };
 }
 
-async function joinSession() {
-  await getVideoSDKJWT();
-  uitoolkit.joinSession(sessionContainer, config);
-  previewWrapper.style.display = 'none';
-  uitoolkit.closePreview(previewContainer);
-  uitoolkit.onSessionClosed(sessionClosed);
+const resizeObserver = new ResizeObserver(throttle(renderVideo, 250));
+resizeObserver.observe(canvas, { box: 'content-box' });
+
+async function getVideoSDKJWT() {
+  let response = await fetch('/api/generate', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      topic: 'kja-test',
+      roleType: 0,
+      name: 'kja'
+    })
+  });
+
+  return await response.json();
 }
 
-const sessionClosed = () => {
-  uitoolkit.closeSession(sessionContainer);
-  endContainer.style.display = 'block';
-};
+async function drawGridView() {
+  let rowN = 1;
+  let colN = 0;
+  videoWidth = Math.floor(displayWidth / 5);
+  videoHeight = Math.floor((videoWidth * 9) / 16);
+
+  const userList = client.getAllUser().reverse();
+  console.log(canvas.height, canvas.clientHeight, displayHeight);
+  console.log(canvas);
+  for (const [index, user] of userList.entries()) {
+    if (user.bVideoOn) {
+      if (colN === 5) {
+        rowN++;
+        colN = 0;
+      }
+      let videoX = videoWidth * colN;
+      let videoY = Math.floor(displayHeight - videoHeight * rowN);
+      try {
+        await mediaStream.adjustRenderedVideoPosition(canvas, user.userId, videoWidth, videoHeight, videoX, videoY, 2);
+      } catch (error) {
+        await mediaStream.renderVideo(canvas, user.userId, videoWidth, videoHeight, videoX, videoY, 2);
+      }
+      colN++;
+    }
+  }
+}
+
+function renderVideo() {
+  resizeCanvasToDisplaySize();
+  drawGridView();
+}
+
+async function initVideoSDK() {
+  let { signature } = await getVideoSDKJWT();
+  await client.init('en-US', 'Global', { patchJsMedia: true });
+  client.on('peer-video-state-change', renderVideo);
+  await client.join('kja-test', signature, 'kja');
+  client.on('user-added', renderVideo);
+  client.on('user-updated', renderVideo);
+  client.on('user-removed', renderVideo);
+  mediaStream = client.getMediaStream();
+  await mediaStream.startVideo();
+  renderVideo();
+}
+
+initVideoSDK();

@@ -5,13 +5,17 @@
     <title>Zoom Video SDK UI Toolkit</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
-
-    <link rel="stylesheet" href="/zoom/dist/videosdk-ui-toolkit.css" />
     <link rel="stylesheet" href="/css/index.css" />
   </head>
   <body>
     <main>
-      <form class="joinContainer" id="joinContainer">
+      <div id="header"><h2>header</h2></div>
+      <div id="video-content">
+        <canvas id="videos"></canvas>
+      </div>
+      <div id="toolbar"><h2>tools</h2></div>
+
+      <!-- <form class="joinContainer" id="joinContainer">
         <h1>Welcome!</h1>
         <input type="text" placeholder="Your Name" id="yourName" required />
 
@@ -32,7 +36,7 @@
 
       <div id="finalContainer">
         <p>Thanks for joining!</p>
-      </div>
+      </div> -->
     </main>
     <script type="module" src="./js/index.mjs"></script>
   </body>

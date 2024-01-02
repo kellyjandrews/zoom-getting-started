@@ -4,7 +4,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@zoom/videosdk-ui-toolkit": "^1.9.8",
+    "@zoom/videosdk": "^1.10.1",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "jsrsasign": "^10.9.0"
