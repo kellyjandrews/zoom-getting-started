@@ -14,9 +14,9 @@ async function onResize() {
 
 function resizeCanvasToDisplaySize() {
   let width = canvas.clientWidth;
-  let height = canvas.clientHeight;
-  displayHeight = Math.floor(height);
+  // let height = canvas.clientHeight;
   displayWidth = Math.floor(width);
+  displayHeight = Math.floor((displayWidth * 9) / 16);
 
   let needResize = canvas.width != displayWidth || canvas.height != displayHeight;
 
@@ -25,7 +25,7 @@ function resizeCanvasToDisplaySize() {
       mediaStream.updateVideoCanvasDimension(canvas, displayWidth, displayHeight);
     } catch (error) {
       canvas.height = displayHeight;
-      canvas.width = (displayHeight * 16) / 9;
+      canvas.width = displayWidth;
     }
   }
 }
@@ -82,6 +82,7 @@ async function drawGridView() {
       colN++;
     }
   }
+  return;
 }
 
 function renderVideo() {
@@ -98,8 +99,8 @@ async function initVideoSDK() {
   client.on('user-updated', renderVideo);
   client.on('user-removed', renderVideo);
   mediaStream = client.getMediaStream();
-  await mediaStream.startVideo();
-  renderVideo();
+  mediaStream.startVideo();
+  await renderVideo();
 }
 
-initVideoSDK();
+await initVideoSDK();
