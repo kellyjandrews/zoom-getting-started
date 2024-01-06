@@ -1,31 +1,42 @@
 import ZoomVideo from '/zoom/videosdk/dist/index.esm.js';
 
+// method to handle pagination and user list
+// filters for toggle self view, toggle non-video
+// method to render the video (takes a list of users, grid size)
+// method to handle all of this
+
+// Rule set
+// Max # of Users to display / Column Width / ().5625 * Column Width)
+// Minimum Video Width/Height Set
+// Grid Priority - Screen Size > Number of Participants
+// Grid_1: 2 / 100% * canvas*width
+// Grid_2: 4 / 50% * canvas*width
+// Grid_3: 9 / 33% * canvas*width
+// Grid_4: 16 / 25% * canvas*width
+// Grid_5: 25 / 20% * canvas*width
+
+// [x, y] = [canvas.height - rowHeight * row];
+
+// render_video - users to render, grid
+// video-detailed-data-change
 const client = ZoomVideo.createClient();
 let canvas = document.querySelector('#videos');
 let mediaStream;
-let displayWidth;
 let displayHeight;
-let videoWidth;
-let videoHeight;
-
-async function onResize() {
-  await renderVideo();
-}
+let displayWidth;
+let userDisplayMap = new Map();
 
 function resizeCanvasToDisplaySize() {
-  let width = canvas.clientWidth;
-  // let height = canvas.clientHeight;
-  displayWidth = Math.floor(width);
-  displayHeight = Math.floor((displayWidth * 9) / 16);
-
+  displayWidth = Math.floor(canvas.clientWidth);
+  displayHeight = Math.floor(displayWidth * 0.5625);
   let needResize = canvas.width != displayWidth || canvas.height != displayHeight;
-
   if (needResize) {
     try {
       mediaStream.updateVideoCanvasDimension(canvas, displayWidth, displayHeight);
     } catch (error) {
-      canvas.height = displayHeight;
+      console.log(error);
       canvas.width = displayWidth;
+      canvas.height = displayHeight;
     }
   }
 }
@@ -57,37 +68,44 @@ async function getVideoSDKJWT() {
   return await response.json();
 }
 
-async function drawGridView() {
-  let rowN = 1;
-  let colN = 0;
-  videoWidth = Math.floor(displayWidth / 5);
-  videoHeight = Math.floor((videoWidth * 9) / 16);
+// what determines the grid size?
+// what controls the UserList?
+//
+async function drawGridView(userList) {
+  let row = 1;
+  let col = 0;
+  let videoWidth = Math.floor(displayWidth / gridSize);
+  let videoHeight = Math.floor(videoWidth * 0.5625);
 
-  const userList = client.getAllUser().reverse();
-  console.log(canvas.height, canvas.clientHeight, displayHeight);
-  console.log(canvas);
   for (const [index, user] of userList.entries()) {
-    if (user.bVideoOn) {
-      if (colN === 5) {
-        rowN++;
-        colN = 0;
-      }
-      let videoX = videoWidth * colN;
-      let videoY = Math.floor(displayHeight - videoHeight * rowN);
-      try {
-        await mediaStream.adjustRenderedVideoPosition(canvas, user.userId, videoWidth, videoHeight, videoX, videoY, 2);
-      } catch (error) {
-        await mediaStream.renderVideo(canvas, user.userId, videoWidth, videoHeight, videoX, videoY, 2);
-      }
-      colN++;
+    if (col === gridSize) {
+      //do I need to stop/error at max capacity?
+      row++;
+      col = 0;
     }
+    // if row is not full, center with with half the remaining difference
+    let videoX = Math.floor(videoWidth * col);
+    let videoY = Math.floor(displayHeight - videoHeight * row);
+    await mediaStream?.stopRenderVideo(canvas, user.userId);
+    await mediaStream?.renderVideo(canvas, user.userId, videoWidth, videoHeight, videoX, videoY, 2);
+    col++;
   }
-  return;
 }
 
-function renderVideo() {
+function renderVideo(payload) {
+  // this should manage the pagination, etc.
+  const userList = client.getAllUser().reverse();
+  console.log(userList);
+  console.log(payload);
   resizeCanvasToDisplaySize();
-  drawGridView();
+  // filter by non-video
+  // turn off self view
+
+  // max grid size
+  // minimum video width?
+  // pagination - handling the number of pages etc
+
+  drawGridView(user, gridSize);
 }
 
 async function initVideoSDK() {
@@ -98,9 +116,12 @@ async function initVideoSDK() {
   client.on('user-added', renderVideo);
   client.on('user-updated', renderVideo);
   client.on('user-removed', renderVideo);
+  client.on('video-dimension-change', renderVideo);
+  client.on('video-statistic-data-change', renderVideo);
+
   mediaStream = client.getMediaStream();
   mediaStream.startVideo();
-  await renderVideo();
+  renderVideo();
 }
 
 await initVideoSDK();
