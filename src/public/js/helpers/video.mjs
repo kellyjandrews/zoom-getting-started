@@ -132,7 +132,7 @@ export class VideoDisplay {
     let col = 0;
 
     for (const user of this.usersList) {
-      if (col > maxColumns) {
+      if (col >= maxColumns) {
         row++;
         col = 0;
       }
