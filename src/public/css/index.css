@@ -25,7 +25,7 @@ main {
 }
 
 #video-content {
-  background-color: red;
+  background-color: black;
   align-content: middle;
   flex: 3;
   justify-content: center;
