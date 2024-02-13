@@ -26,7 +26,7 @@ export class VideoDisplay {
     let { displayWidth, displayHeight } = this.containerDimensions();
     raw.get(this.el)(raw.canvas({ id: 'video-render-canvas', width: displayWidth, height: displayHeight }));
     this.stream = stream;
-    this.stream.startVideo();
+    this.stream.startVideo(); // if default is to start?
     // Setup Resize Observer
     this.resizeObserver = new ResizeObserver(throttle(this.renderVideos, 250));
     this.resizeObserver.observe(el, { box: 'content-box' });
@@ -109,7 +109,7 @@ export class VideoDisplay {
     let { maxRows, maxColumns } = this.maxRowsColumns();
 
     if (count > this.maxPageSize || count === 0 || displayWidth === 0 || displayHeight === 0) {
-      return [];
+      return []; // is this the right option?
     }
 
     maxRows = Math.min(maxRows, count);
@@ -189,6 +189,8 @@ export class VideoDisplay {
     let userCount = this.usersList.length;
     // somewhere in here is paging...
     let optimizedLayout = this.optimizeLayout(userCount);
+    // filter and order the users in the list
+    // show/hide self based on self-view setting
     this.usersList.forEach(async (user, i) => {
       let { width, height, x, y, quality } = optimizedLayout[i];
       console.log(optimizedLayout[i]);
