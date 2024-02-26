@@ -22,10 +22,11 @@ async function initVideoSDK() {
   await client.init('en-US', 'Global', { patchJsMedia: true, leaveOnPageUnload: true });
   await client.join('kja-test', signature, 'kja');
   let stream = await client.getMediaStream();
-  let videoDisplay = new VideoDisplay({ el: document.querySelector('#video-content'), client, stream });
+  let videoDisplay = new VideoDisplay({ client, stream });
 
   client.on('user-added', (payload) => {
     console.log('user-added', payload);
+    // videoDisplay.renderVideos();
   });
 
   client.on('peer-video-state-change', (payload) => {

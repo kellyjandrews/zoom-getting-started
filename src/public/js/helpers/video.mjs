@@ -8,6 +8,13 @@ function throttle(f, delay) {
   };
 }
 
+const VideoRes = {
+  Video_90P: 0,
+  Video_180P: 1,
+  Video_360P: 2,
+  Video_720P: 3
+};
+
 export class VideoDisplay {
   aspectRatio = 16 / 9;
   minCellWidth = 256;
@@ -18,18 +25,16 @@ export class VideoDisplay {
   pageSize = 0;
   totalUserCount = 0;
   totalPages = 0;
+  videoContainer = document.querySelector('video-player-container');
 
-  constructor({ el, client, stream }) {
-    // store the original parent element
-    this.el = el;
+  constructor({ client, stream }) {
     this.videoSDK = client;
-    let { displayWidth, displayHeight } = this.containerDimensions();
-    raw.get(this.el)(raw.canvas({ id: 'video-render-canvas', width: displayWidth, height: displayHeight }));
     this.stream = stream;
-    this.stream.startVideo(); // if default is to start?
+    this.stream.startVideo();
+    this.videoContainer;
     // Setup Resize Observer
     this.resizeObserver = new ResizeObserver(throttle(this.renderVideos, 250));
-    this.resizeObserver.observe(el, { box: 'content-box' });
+    this.resizeObserver.observe(this.videoContainer, { box: 'content-box' });
   }
 
   layoutCandidates = Array.from({ length: this.maxPageSize })
@@ -84,8 +89,8 @@ export class VideoDisplay {
       );
   };
 
-  containerDimensions = () => {
-    let target = raw.get(this.el);
+  containerDimensions = (el = this.videoContainer) => {
+    let target = raw.get(el);
     let displayWidth = Math.floor(target().clientWidth);
     let displayHeight = Math.floor(target().clientHeight);
     return { displayWidth, displayHeight };
@@ -176,31 +181,90 @@ export class VideoDisplay {
   };
 
   stopRenderVideo = async (user) => {
-    let canvas = document.getElementById('video-render-canvas');
+    let canvas = document.getElementsByTagName('video-player-container');
     try {
       await this.stream.stopRenderVideo(canvas, user.id);
     } catch {}
   };
 
-  renderVideos = async () => {
-    let canvas = document.getElementById('video-render-canvas');
-    await this.resizeCanvas();
-    await this.setUserList();
-    let userCount = this.usersList.length;
-    // somewhere in here is paging...
-    let optimizedLayout = this.optimizeLayout(userCount);
-    // filter and order the users in the list
-    // show/hide self based on self-view setting
-    this.usersList.forEach(async (user, i) => {
-      let { width, height, x, y, quality } = optimizedLayout[i];
-      console.log(optimizedLayout[i]);
-      try {
-        await this.stream.stopRenderVideo(canvas, user.userId);
-        await this.stream.renderVideo(canvas, user.userId, width, height, x, y, quality);
-      } catch (e) {
-        // console.log(e);
-        // render avatar or something
+  getResolution = () => {
+    res = VideoRes.Video_90P;
+    if (actualCount <= 4 && cellBoxHeight >= 510) {
+      res = VideoRes.Video_720P;
+    } else if (actualCount <= 4 && cellHeight >= 270) {
+      res = VideoRes.Video_360P;
+    } else if (actualCount > 4 && cellHeight >= 180) {
+      res = VideoRes.Video_180P;
+    }
+    return res;
+  };
+
+  getBestSize = (numOfVideos) => {
+    let { displayWidth, displayHeight } = this.containerDimensions();
+    let best = { width: 0, height: 0 };
+    for (let cols = numOfVideos; cols > 0; cols--) {
+      const rows = Math.ceil(numOfVideos / cols);
+      const hScale = displayWidth / (cols * this.aspectRatio);
+      const vScale = displayHeight / rows;
+      let width;
+      let height;
+      if (hScale <= vScale) {
+        width = displayWidth / cols;
+        height = width / this.aspectRatio;
+      } else {
+        height = displayHeight / rows;
+        width = height * this.aspectRatio;
       }
+      const area = width * height;
+      if (area > best.width * best.height) {
+        best = { width, height };
+      }
+    }
+    return best;
+  };
+
+  renderVideos = async () => {
+    let usersList = await this.videoSDK.getAllUser();
+    let innerHTML = [];
+    const { width, height } = this.getBestSize(usersList.length);
+    await usersList.forEach(async (user, i) => {
+      try {
+        let userVideo = await this.stream.attachVideo(user.userId, VideoRes.Video_360P);
+
+        userVideo = raw.get(userVideo)({
+          height: height,
+          width: width,
+          flex: '1 0 auto',
+          display: 'inline',
+          'aspect-ratio': '16/9'
+        });
+        innerHTML.push(userVideo.outerHTML);
+      } catch (e) {}
     });
+    this.videoContainer.innerHTML = innerHTML.join('');
   };
 }
+
+// video-player-container {
+//   width: 100%;
+//   height: 1000px;
+// }
+
+// video-player {
+//   width: 100%;
+//   height: auto;
+//   aspect-ratio: 16/9;
+// }
+
+// let userVideo = await stream.attachVideo(USER_ID, RESOLUTION);
+
+// document.querySelector('video-player-container').appendChild(userVideo);
+
+// <video-player-container></video-player-container>
+//    client.getAllUser().forEach((user) => {
+//       if(user.bVideoOn) {
+//         stream.attachVideo(user.userId, 3).then((userVideo) => {
+//           document.querySelector('video-player-container').appendChild(userVideo);
+//         })
+//       }
+//    })

@@ -26,20 +26,34 @@ main {
 
 #video-content {
   background-color: black;
-  align-content: middle;
-  flex: 3;
-  justify-content: center;
-  display: flex;
-  flex-direction: row;
-  height: 80dvh;
-  width: 100dvw;
 }
-/* 
-#video-content canvas {
-  background-color: yellow;
-  width: 100vw;
-  height: calc(100vw * 0.5625);
+
+/* video-player-container {
+  height: 80dvh;
+  width: 80dvw;
+  display: flex;
 } */
+/* video-player-container {
+  height: 80dvh;
+  width: 80dvw;
+  margin: 0 auto;
+  display: grid !important;
+  grid-template-columns: 20% 20% 20% 20% 20%;
+  gap: 5px;
+} */
+
+/* video-player {
+  height: auto;
+  min-width: 200px;
+  aspect-ratio: 16/9;
+} */
+video-player-container {
+  height: 80dvh;
+  width: 100%;
+  display: flex !important;
+  flex-wrap: wrap;
+  justify-items: center;
+}
 
 #toolbar {
   flex: 0;
