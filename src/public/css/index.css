@@ -25,131 +25,70 @@ main {
 }
 
 #video-content {
+  height: 80dvh;
+  width: 100%;
   background-color: black;
 }
 
-/* video-player-container {
-  height: 80dvh;
-  width: 80dvw;
-  display: flex;
-} */
-/* video-player-container {
-  height: 80dvh;
-  width: 80dvw;
-  margin: 0 auto;
-  display: grid !important;
-  grid-template-columns: 20% 20% 20% 20% 20%;
-  gap: 5px;
-} */
-
-/* video-player {
-  height: auto;
-  min-width: 200px;
-  aspect-ratio: 16/9;
-} */
 video-player-container {
-  height: 80dvh;
+  height: 100%;
   width: 100%;
   display: flex !important;
-  flex-wrap: wrap;
-  justify-items: center;
+  flex-flow: row wrap;
+  justify-content: center;
+  align-content: center;
+  overflow: hidden;
+}
+
+video-player {
+  min-width: 256px;
+  width: auto;
+  height: auto;
+  aspect-ratio: 16/9;
+  flex: 0 0 100% !important;
+}
+
+video-player-container:has(> :nth-child(1 of video-player)) video-player {
+  flex: 0 0 100% !important;
+}
+video-player-container:has(> :nth-child(2 of video-player)) video-player {
+  width: 50dvw;
+  flex: 0 0 50% !important;
+}
+video-player-container:has(> :nth-child(4 of video-player)) video-player {
+  width: 33.3dvw;
+  flex: 0 0 33.3% !important;
+}
+video-player-container:has(> :nth-child(9 of video-player)) video-player {
+  width: 25dvw;
+  flex: 0 0 25% !important;
+}
+video-player-container:has(> :nth-child(16 of video-player)) video-player {
+  width: 20dvw;
+  flex: 0 0 20% !important;
+}
+
+@media (width < height) {
+  video-player-container:has(> :nth-child(2 of video-player)) video-player {
+    height: 50dvh;
+    flex: 0 0 100% !important;
+  }
+  video-player-container:has(> :nth-child(4 of video-player)) video-player {
+    height: 33.3dvh;
+    flex: 0 0 33.3% !important;
+  }
+  video-player-container:has(> :nth-child(9 of video-player)) video-player {
+    height: 25dvh;
+    flex: 0 0 25% !important;
+  }
+  video-player-container:has(> :nth-child(16 of video-player)) video-player {
+    height: 20dvh;
+    flex: 0 0 20% !important;
+  }
 }
 
 #toolbar {
   flex: 0;
   padding: 10px;
   background-color: white;
-}
-
-#previewWrapper {
-  display: none;
-  text-align: center;
-  zoom: 0.8;
-  height: 60vh;
-  width: 60vw;
-  margin: 0 auto;
-}
-
-#previewContainer {
-  text-align: center;
-  margin: 0 auto;
-  padding-bottom: 20px;
-}
-.previewcontrols {
-  position: relative;
-}
-
-#sessionContainer {
-  margin: 0 auto;
-  height: 60vh;
-  width: 60vw;
-}
-
-#finalContainer {
-  display: none;
-  text-align: center;
-}
-
-#sessionNameRequired,
-#nameRequired,
-#passcodeLength {
-  color: red;
-  display: none;
-}
-
-.header {
-  margin-top: 50px;
-  text-align: center;
-}
-
-.header img {
-  width: 50px;
-}
-
-.joinContainer {
-  width: 200px;
-  margin: auto;
-  margin-top: 30px;
-}
-
-.joinContainer input {
-  border: 1px solid gray;
-}
-
-.joinContainer input,
-.joinContainer button,
-#joinSessionButton,
-select {
-  width: 100%;
-  margin-bottom: 10px;
-  padding: 10px;
-  border-radius: 10px;
-  font-size: 16px;
-}
-
-.joinContainer button,
-#previewWrapper button {
-  cursor: pointer;
-  background-color: #0751e4;
-  border: none;
-  color: #ffffff;
-  -webkit-transition: background-color 0.5s;
-  -moz-transition: background-color 0.5s;
-  -ms-transition: background-color 0.5s;
-  -o-transition: background-color 0.5s;
-  transition: background-color 0.5s;
-}
-
-.joinContainer button:hover,
-#previewWrapper button:hover {
-  background-color: #003cb3;
-}
-
-.joinContainer small {
-  text-align: center;
-  display: block;
-}
-
-.joinContainer small a {
-  color: #0751e4;
 }
