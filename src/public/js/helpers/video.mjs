@@ -83,29 +83,37 @@ export class VideoDisplay {
     return res;
   };
 
-  getBestSize = (displayWidth, displayHeight, maxRows, maxColumns, numOfVideos) => {
+  getBestSize = (numOfVideos) => {
+    let { displayWidth, displayHeight } = this.containerDimensions();
+    let { maxRows, maxColumns } = this.maxRowsColumns();
     let best = { width: 0, height: 0, cols: 0, rows: 0 };
+    console.log(maxRows, maxRows);
     for (let cols = numOfVideos; cols > 0; cols--) {
-      const rows = Math.ceil(numOfVideos / cols); //2 / 2 = 1
-      const hScale = displayWidth / (cols * this.aspectRatio);
-      const vScale = displayHeight / rows;
-      console.log(hScale, vScale);
-      let width;
-      let height;
-      if (hScale <= vScale) {
-        width = displayWidth / cols;
-        height = width / this.aspectRatio;
-      } else {
-        height = displayHeight / rows;
-        width = height * this.aspectRatio;
-      }
-      console.log(cols, rows, maxRows, maxColumns);
-      console.log(!cols <= maxColumns && !rows <= maxRows);
-      let area = width * height;
-      if (area > best.width * best.height) {
-        best = { width, height, cols, rows };
-      } else {
-        best = best;
+      if (cols <= maxColumns) {
+        const rows = Math.ceil(numOfVideos / cols);
+
+        if (rows <= maxRows) {
+          console.log(cols, rows);
+
+          const hScale = displayWidth / (cols * this.aspectRatio);
+          const vScale = displayHeight / rows;
+
+          let width;
+          let height;
+
+          if (hScale <= vScale) {
+            width = Math.floor(displayWidth / cols);
+            height = Math.floor(width / this.aspectRatio);
+          } else {
+            height = Math.floor(displayHeight / rows);
+            width = Math.floor(height * this.aspectRatio);
+          }
+
+          let area = width * height;
+          if (area > best.width * best.height) {
+            best = { width, height, cols, rows };
+          }
+        }
       }
     }
     return best;
@@ -114,11 +122,15 @@ export class VideoDisplay {
   renderVideos = async () => {
     let usersList = await this.videoSDK.getAllUser();
     let maxVideoCount = this.maxViewportVideoCounts();
-    let videoCount = Math.min * (usersList.list, maxVideoCount);
+    let videoCount = Math.min(usersList.length, maxVideoCount);
+    let { width, height, rows, cols } = this.getBestSize(videoCount);
+    console.log(width, height, cols, rows);
+    this.videoContainer.style.setProperty('--videoWidth', width + 'px');
+    this.videoContainer.style.setProperty('--videoHeight', height + 'px');
     let innerHTML = [];
-    console.log(videoCount);
-    // if usersList.length > 25 - pagination
-    // console.log(width, height, rows, cols);
+
+    // if usersList.length > Math.min(maxVideoCount,25) - pagination
+
     await usersList.forEach(async (user, i) => {
       try {
         let userVideo = await this.stream.attachVideo(user.userId, VideoRes.Video_360P);
