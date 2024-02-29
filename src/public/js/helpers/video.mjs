@@ -124,7 +124,7 @@ export class VideoDisplay {
     let maxVideoCount = this.maxViewportVideoCounts();
     let videoCount = Math.min(usersList.length, maxVideoCount);
     let { width, height, rows, cols } = this.getBestSize(videoCount);
-    console.log(width, height, cols, rows);
+
     this.videoContainer.style.setProperty('--videoWidth', width + 'px');
     this.videoContainer.style.setProperty('--videoHeight', height + 'px');
     let innerHTML = [];
